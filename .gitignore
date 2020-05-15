@@ -1,0 +1,5 @@
+minio/.minio.sys
+
+__pycache__
+
+.env

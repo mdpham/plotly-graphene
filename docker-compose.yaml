@@ -1,0 +1,64 @@
+version: "3"
+
+services: 
+  # mongo: 
+    # image: mongo:latest
+    # container_name: mongo
+    # ports:
+    #   - "${MONGO_HOST_PORT}:27017"
+    # volumes:
+    #   - ./mongodb:/data/db
+
+  minio: 
+    image: minio/minio:latest
+    container_name: pg-minio
+    networks:
+      - default
+    expose:
+      - ${MINIO_HOST_PORT}
+    ports:
+      - "${MINIO_HOST_PORT}:${MINIO_HOST_PORT}"
+    environment:
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+    volumes:
+      - ./minio:/data
+    command: server /data
+
+  server: 
+    image: plotly-graphene-server
+    container_name: pg-server
+    networks:
+      - default
+    expose:
+      - ${GRAPHQL_PORT}
+    ports:
+      - "${GRAPHQL_PORT}:${GRAPHQL_PORT}"
+    environment:
+      - MINIO_HOST_PORT=${MINIO_HOST_PORT}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+    volumes:
+      - ./server:/app/src
+      - ./minio:/app/minio
+    working_dir: /app/src
+    depends_on:
+      - minio
+    command: uvicorn main:app --host 0.0.0.0 --port ${GRAPHQL_PORT} --reload
+
+  client: 
+    image: plotly-graphene-client
+    container_name: pg-client
+    networks:
+      - default
+    stdin_open: true
+    expose:
+      - ${REACT_PORT}
+    ports:
+      - "${REACT_PORT}:${REACT_PORT}"
+    volumes:
+      - ./client:/app/src
+    working_dir: /app/src
+    depends_on:
+      - server
+    command: npm start
