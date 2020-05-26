@@ -3,3 +3,6 @@ minio/.minio.sys
 __pycache__
 
 .env
+.vscode/*
+results/*
+server/schema/python_modules/*
