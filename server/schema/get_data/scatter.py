@@ -14,33 +14,28 @@ colour_dict = {}
 def add_barcode(plotly_obj, barcode, label, barcode_coords, num_cells):
     """ add a new barcode to the plotly object and add its label group if it doesn't exist yet """
     global colour_dict
-
-    for group in plotly_obj:
-        if group['name'] == label:
-            group['text'].append(barcode)
-            group['x'].append(barcode_coords[barcode][0])
-            group['y'].append(barcode_coords[barcode][1])
-            group['marker']['color'].append(colour_dict[label])
-            return
-
-    # group not seen yet
-    colour_dict[label] = helper.COLOURS[len(colour_dict.keys())%len(helper.COLOURS)]
-    template_obj = {
-        "name": label,
-        "mode": "markers",
-        "text": [barcode],
-        "x": [barcode_coords[barcode][0]],
-        "y": [barcode_coords[barcode][1]],
-        "marker": {
-            'color': [colour_dict[label]],
-        },
-    }
-    if num_cells > 20000:
-        # add different rendering to improve speeds
-        template_obj["type"] = "scattergl"
-    
-    plotly_obj.append(template_obj)
-    return
+    if (label in plotly_obj):
+        plotly_obj[label]['text'].append(barcode)
+        plotly_obj[label]['x'].append(barcode_coords[barcode][0])
+        plotly_obj[label]['y'].append(barcode_coords[barcode][1])
+        plotly_obj[label]['marker']['color'].append(colour_dict[label])
+    else:
+        # group not seen yet
+        colour_dict[label] = helper.COLOURS[len(colour_dict.keys())%len(helper.COLOURS)]
+        template_obj = {
+            "name": label,
+            "mode": "markers",
+            "text": [barcode],
+            "x": [barcode_coords[barcode][0]],
+            "y": [barcode_coords[barcode][1]],
+            "marker": {
+                'color': [colour_dict[label]],
+            },
+        }
+        if num_cells > 20000:
+            # add different rendering to improve speeds
+            template_obj["type"] = "scattergl"
+        plotly_obj[label] = template_obj
 
 def add_barcodes(plotly_obj, column_name, barcode_values, barcode_coords, num_cells, all_zeros):
     """ add all barcodes to the plotly object with their corresponding colour gradient based on value """    
@@ -87,7 +82,7 @@ def add_barcodes(plotly_obj, column_name, barcode_values, barcode_coords, num_ce
         # artificially add 1 to fix scale
         template_obj["marker"]["color"].append(1)
     
-    plotly_obj.append(template_obj)
+    plotly_obj["numeric_data"] = template_obj
     return
 
 def label_with_groups(plotly_obj, barcode_coords, num_cells, group, groups_tsv):
@@ -153,34 +148,42 @@ def label_with_metadata(plotly_obj, barcode_coords, num_cells, group, groups_tsv
     else:
         helper.return_error(group + " does not have a valid data type (must be 'group' or 'numeric')")
 
-def label_barcodes(barcode_coords, group, runID, projectID):
+def label_barcodes(barcode_coords, group, runID, projectID, minio_client):
     """ given the coordinates for the barcodes, sorts them into the specified groups and returns a plotly object """
-    plotly_obj = []    
+    plotly_obj = {}    
     num_cells = helper.get_cellcount(runID)
 
-    metadata_bucket = "project-{pID}".format(pID=projectID)
-    metadata_exists = minio_functions.object_exists(metadata_bucket, "metadata.tsv")
+    metadata = {
+        "bucket": "project-{pID}".format(pID=projectID),
+        "object": "metadata.tsv"
+    }
+    groups = {
+        "bucket": "frontend_groups",
+        "object": "groups.tsv"
+    }
 
-    groups_tsv = minio_functions.get_obj_as_2dlist("frontend_groups", "groups.tsv", include_header=True)
+    metadata_exists = minio_functions.object_exists(metadata["bucket"], "metadata.tsv", minio_client)
 
-    if group in minio_functions.get_first_line("frontend_groups", "groups.tsv"):
+    groups_tsv = minio_functions.get_obj_as_2dlist(groups["bucket"], groups["object"], minio_client, include_header=True)
+
+    if group in groups_tsv[0]:
         # groups tsv definition supercedes metadata
         label_with_groups(plotly_obj, barcode_coords, num_cells, group, groups_tsv)
-    elif (metadata_exists and (group in minio_functions.get_first_line(metadata_bucket, "metadata.tsv"))):
+    elif (metadata_exists and (group in minio_functions.get_first_line(metadata["bucket"], metadata["object"], minio_client))):
         # it's defined in the metadata, need to merge with groups_tsv
         label_with_metadata(plotly_obj, barcode_coords, num_cells, group, groups_tsv,
-            minio_functions.get_obj_as_2dlist(metadata_bucket, "metadata.tsv", include_header=True)
+            minio_functions.get_obj_as_2dlist(metadata["bucket"], metadata["object"], minio_client, include_header=True)
         )
     else:
         helper.return_error(group + " is not an available group in groups.tsv or metadata.tsv")
 
-    return plotly_obj
+    return plotly_obj.values()
 
-def get_coordinates(vis, runID):
+def get_coordinates(vis, runID, minio_client):
     """ given a visualization type and runID, gets the coordinates for each barcode and returns in dict """
     barcode_coords = {}
     
-    coordinate_file = minio_functions.get_obj_as_2dlist("frontend_coordinates", "{vis}Coordinates.tsv".format(vis=vis))
+    coordinate_file = minio_functions.get_obj_as_2dlist("frontend_coordinates", "{vis}Coordinates.tsv".format(vis=vis), minio_client)
     for row in coordinate_file:
         barcode = row[0]
         if barcode in barcode_coords:
@@ -190,10 +193,10 @@ def get_coordinates(vis, runID):
 
     return barcode_coords
 
-def get_scatter_data(vis, group, runID, projectID):
+def get_scatter_data(vis, group, runID, projectID, minio_client):
     """ given a vistype grouping, runID and projectID, returns the plotly object """
-    barcode_coords = get_coordinates(vis, runID)
-    plotly_obj = label_barcodes(barcode_coords, group, runID, projectID)
+    barcode_coords = get_coordinates(vis, runID, minio_client)
+    plotly_obj = label_barcodes(barcode_coords, group, runID, projectID, minio_client)
     try:
         helper.sort_traces(plotly_obj)
     except:

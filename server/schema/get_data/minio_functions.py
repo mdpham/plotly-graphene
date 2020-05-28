@@ -13,8 +13,7 @@ def get_client():
         secure=False
     )
 
-def object_exists(bucket, objct):
-    minio_client = get_client()
+def object_exists(bucket, objct, minio_client):
     if (minio_client.bucket_exists(bucket)):
         for obj in minio_client.list_objects(bucket):
             if (obj.object_name == objct):
@@ -29,14 +28,12 @@ def format_line_as_string_list(line):
         .split("\\t")
     )
 
-def get_first_line(bucket, objct):
-    minio_client = get_client()
+def get_first_line(bucket, objct, minio_client):
     return format_line_as_string_list(
         minio_client.get_object(bucket, objct).readline()
     )
 
-def get_obj_as_2dlist(bucket, objct, include_header=False):
-    minio_client = get_client()
+def get_obj_as_2dlist(bucket, objct, minio_client, include_header=False):
     obj = minio_client.get_object(bucket, objct)
     if (not include_header):
         obj.readline()

@@ -1,47 +1,44 @@
-from graphene import Enum, Field, Float, List, NonNull, ObjectType, String
+from graphene import Field, Float, List, NonNull, ObjectType, String
 
-import importlib
-importlib.import_module("get_data", "scatter")
-importlib.import_module("hex_colour_code")
+from get_data.scatter import get_scatter_data
 
-class Mode(Enum):
-    lines = "lines"
-    markers = "markers"
-    text = "text"
-    none = "none"
-
-class Marker(ObjectType):
-    color = List(Field(HexColor))
-    def resolve_color(parent, info):
-        return parent["marker"]["color"]
+from secondary.marker import Marker
+from secondary.mode import Mode
 
 class ScatterData(ObjectType):
     name = String()
+    @staticmethod
     def resolve_name(parent, info):
         return parent["name"]
     
     mode = List(Mode)
+    @staticmethod
     def resolve_mode(parent, info):
         return parent["mode"].split("+")
     
-    text = NonNull(List(String()))
+    text = List(NonNull(String))
+    @staticmethod
     def resolve_text(parent, info):
         return parent["text"]
 
-    x = NonNull(List(NonNull(Float())))
+    x = List(NonNull(Float))
+    @staticmethod
     def resolve_x(parent, info):
         return parent["x"]
 
-    y = NonNull(List(NonNull(Float())))
+    y = List(NonNull(Float))
+    @staticmethod
     def resolve_y(parent, info):
         return parent["y"]
     
-    marker = Field(Marker)
+    marker = Marker()
+    @staticmethod
+    def resolve_marker(parent, info):
+        return parent["marker"]
 
 class Scatter(ObjectType):
     """docstring for Scatter"""
     data = Field(List(NonNull(ScatterData)))
+    @staticmethod
     def resolve_data(parent, info):
-        return get_scatter_data(parent.vis, parent.group, parent.runID, parent.projectID)
-
-
+        return get_scatter_data(parent.vis, parent.group, parent.runID, parent.projectID, info.context.get('minio_client'))
