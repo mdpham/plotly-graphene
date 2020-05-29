@@ -10,4 +10,7 @@ class Marker(ObjectType):
         return parent["color"]
     
     opacity = UnitInterval()
+    @staticmethod
+    def resolve_opacity(parent, info):
+        return parent["opacity"]
 
