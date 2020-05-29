@@ -164,7 +164,7 @@ def label_barcodes(barcode_coords, group, runID, projectID, minio_client):
 
     metadata_exists = minio_functions.object_exists(metadata["bucket"], "metadata.tsv", minio_client)
 
-    groups_tsv = minio_functions.get_obj_as_2dlist(groups["bucket"], groups["object"], minio_client, include_header=True)
+    groups_tsv = minio_functions.get_obj_as_2dlist(groups["bucket"], groups["object"], minio_client)
 
     if group in groups_tsv[0]:
         # groups tsv definition supercedes metadata
@@ -172,7 +172,7 @@ def label_barcodes(barcode_coords, group, runID, projectID, minio_client):
     elif (metadata_exists and (group in minio_functions.get_first_line(metadata["bucket"], metadata["object"], minio_client))):
         # it's defined in the metadata, need to merge with groups_tsv
         label_with_metadata(plotly_obj, barcode_coords, num_cells, group, groups_tsv,
-            minio_functions.get_obj_as_2dlist(metadata["bucket"], metadata["object"], minio_client, include_header=True)
+            minio_functions.get_obj_as_2dlist(metadata["bucket"], metadata["object"], minio_client)
         )
     else:
         helper.return_error(group + " is not an available group in groups.tsv or metadata.tsv")
@@ -183,7 +183,8 @@ def get_coordinates(vis, runID, minio_client):
     """ given a visualization type and runID, gets the coordinates for each barcode and returns in dict """
     barcode_coords = {}
     
-    coordinate_file = minio_functions.get_obj_as_2dlist("frontend_coordinates", "{vis}Coordinates.tsv".format(vis=vis), minio_client)
+    coordinate_file = minio_functions.get_obj_as_2dlist(
+        "frontend_coordinates", "{vis}Coordinates.tsv".format(vis=vis), minio_client, include_header=False)
     for row in coordinate_file:
         barcode = row[0]
         if barcode in barcode_coords:

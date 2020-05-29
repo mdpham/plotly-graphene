@@ -1,6 +1,6 @@
 from graphene import Boolean, Enum, Field, Float, List, NonNull, ObjectType, String
 
-from get_data.violin import get_violin_data
+from get_data.get_violin import get_violin_data
 
 from secondary.line import Line
 from secondary.meanline import Meanline
@@ -60,12 +60,18 @@ class ViolinData(ObjectType):
     @staticmethod
     def resolve_y(parent, info):
         return parent['y']
-
-    # This can break the code
+    """
+    Some of the objects are actually box-plots not violin because 
+    they are a zero expression and a zero expression box-plot looks better.
+    They don't have a bandwidth property.
+    """
     bandwidth = PositiveNumber()
     @staticmethod
     def resolve_bandwidth(parent, info):
-        return parent['bandwidth']
+        if ('bandwidth' in parent):
+            return parent['bandwidth']
+        else:
+            return None
 
 class Violin(ObjectType):
     data = List(NonNull(Field(ViolinData)))
