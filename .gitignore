@@ -3,3 +3,8 @@ minio/.minio.sys
 __pycache__
 
 .env
+
+# Virtual env
+server/bin/*
+server/include/*
+server/lib/*
