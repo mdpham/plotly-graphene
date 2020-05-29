@@ -1,6 +1,6 @@
 from graphene import Field, Float, List, NonNull, ObjectType, String
 
-from get_data.scatter import get_scatter_data
+from get_data.get_scatter import get_scatter_data
 
 from secondary.marker import Marker
 from secondary.mode import Mode
@@ -38,7 +38,7 @@ class ScatterData(ObjectType):
 
 class Scatter(ObjectType):
     """docstring for Scatter"""
-    data = Field(List(NonNull(ScatterData)))
+    data = List(NonNull(Field(ScatterData)))
     @staticmethod
     def resolve_data(parent, info):
         return get_scatter_data(parent.vis, parent.group, parent.runID, parent.projectID, info.context.get('minio_client'))

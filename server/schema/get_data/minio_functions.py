@@ -33,7 +33,7 @@ def get_first_line(bucket, objct, minio_client):
         minio_client.get_object(bucket, objct).readline()
     )
 
-def get_obj_as_2dlist(bucket, objct, minio_client, include_header=False):
+def get_obj_as_2dlist(bucket, objct, minio_client, include_header=True):
     obj = minio_client.get_object(bucket, objct)
     if (not include_header):
         obj.readline()

@@ -53,7 +53,7 @@ def label_with_groups(plotly_obj, expression_values, group, labels_tsv):
 
 def get_expression(feature, runID):
     """ parses the normalized count matrix to get an expression value for each barcode """
-    path = '../minio/' + loom_file['bucket'] + '/' + loom_file['object']
+    path = '../minio/{bucket}/{object}'.format(bucket=loom_file['bucket'], object=loom_file['object'])
 
     with loompy.connect(path) as ds:
         barcodes = ds.ca.CellID
@@ -102,7 +102,8 @@ def categorize_barcodes(group, expression_values, runID, projectID, minio_client
         # groups tsv definition supercedes metadata
         label_with_groups(plotly_obj, expression_values, group, 
             minio_functions.get_obj_as_2dlist(groups["bucket"], groups["object"], minio_client))
-    elif (metadata_exists and (group in minio_functions.get_first_line(metadata["bucket"], metadata["object"], minio_client))):
+    elif (metadata_exists and 
+         (group in minio_functions.get_first_line(metadata["bucket"], metadata["object"], minio_client))):
         # it's defined in the metadata
         label_with_groups(plotly_obj, expression_values, group, 
             minio_functions.get_obj_as_2dlist(metadata["bucket"], metadata["object"], minio_client))
