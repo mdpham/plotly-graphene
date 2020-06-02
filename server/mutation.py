@@ -1,6 +1,6 @@
 from graphene import Schema, ObjectType, String, Field, ID
 
-from schema.create_minio_bucket import CreateMinioBucket
+from schema.templates.create_minio_bucket import CreateMinioBucket
 
 class Mutation(ObjectType):
   # Mutation type definition and resolver
@@ -8,6 +8,7 @@ class Mutation(ObjectType):
   create_minio_bucket = CreateMinioBucket.Field()
   # Called method from CreateMinioBucket class
   # so we can expect bucket_name argument
+  @staticmethod
   def resolve_create_minio_bucket(parent, info, bucket_name):
     return {'bucket_name': bucket_name}
 

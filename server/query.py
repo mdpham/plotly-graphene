@@ -1,11 +1,12 @@
 from graphene import ObjectType, String, Field, ID, List
-from minio_client.client import minio_client
-from schema.minio_bucket import MinioBucket
-from schema.plot import Plot
+from schema.templates.client import minio_client
+from schema.templates.minio_bucket import MinioBucket
+from schema.templates.plot import Plot
 # Define your queries and their resolvers here
 class Query(ObjectType):
   # A type definition and resolver for each field
   bucket = Field(MinioBucket, bucket_name=String(required=True))
+  @staticmethod
   def resolve_bucket(parent, info, bucket_name):
     if minio_client.bucket_exists(bucket_name):
       return {'bucket_name': bucket_name}
@@ -13,6 +14,7 @@ class Query(ObjectType):
       return None
 
   plots = Field(List(Plot))
+  @staticmethod
   def resolve_plots(parent, info):
     return [
       # snack_case python, camelCase graphql

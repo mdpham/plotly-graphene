@@ -8,6 +8,7 @@ __pycache__
 server/bin/*
 server/include/*
 server/lib/*
+
 .vscode/*
 results/*
 server/schema/python_modules/*

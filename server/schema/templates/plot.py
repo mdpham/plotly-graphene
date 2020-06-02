@@ -1,9 +1,9 @@
 from graphene import ObjectType, String, Field, ID
-from minio_client.client import minio_client
-from schema.minio_bucket import MinioBucket
+from client import minio_client
+from minio_bucket import MinioBucket
 
 class Plot(ObjectType):
   plot_type = String()
-  
+  @staticmethod
   def resolve_plot_type(parent, info):
     return parent['plot_type']
