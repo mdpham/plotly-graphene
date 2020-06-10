@@ -1,0 +1,18 @@
+{
+    "frontend_coordinates" : {
+        "bucket": "run-",
+        "object":"frontend_coordinates/"
+    },
+    "groups": {
+        "bucket": "run-",
+        "object": "frontend_groups/groups.tsv"
+    },
+    "metadata": {
+        "bucket": "dataset-5eda76d7f93f82004f4114b6",
+        "object": "metadata.tsv"
+    },
+    "normalised_counts": {
+        "prefix": "../../minio/upload/run-",
+        "suffix": "frontend_normalized/normalized_counts.loom"
+    }
+}
