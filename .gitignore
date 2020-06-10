@@ -8,9 +8,17 @@ __pycache__
 server/bin/*
 server/include/*
 server/lib/*
+server/Scripts/*
+server/local/*
+server/pyvenv.cfg
+server/share/*
+
+# Minio and Data
 server/minio_data/*
 server/run_minio.bat
-server/mino.exe
+server/minio.exe
+
+# Used for reference and testing
+server/schema/python_modules/*
 
 .vscode/*
-server/schema/python_modules/*
