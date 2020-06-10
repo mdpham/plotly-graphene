@@ -8,8 +8,8 @@ import itertools
 import loompy
 import numpy as np
 
-import helper
-import minio_functions
+import get_data.helper
+import get_data.minio_functions
 
 colour_counter = 0
 

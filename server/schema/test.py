@@ -3,7 +3,7 @@ from minio import Minio
 
 from query import Query
 
-from python_modules.scatter import get_scatter
+#from python_modules.scatter import get_scatter
 
 def test_scatter(client, schema):
     # Setting arguments for a mock call
@@ -46,6 +46,6 @@ if __name__ == "__main__":
     client = Minio("127.0.0.1:9000", access_key="minioadmin", secret_key="minioadmin", secure=False)
 
     # Creating a Schema to execute queries on
-    schema = Schema(query=Query)
+    schema = Schema(query=Query, mutation=Mutation)
 
     test_scatter(client, schema)

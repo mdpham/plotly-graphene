@@ -1,7 +1,7 @@
 from graphene import Scalar
 from graphql.language.ast import (
-    FloatValueNode,
-    IntValueNode,
+    FloatValue,
+    IntValue,
 )
 
 class PositiveNumber(Scalar):
@@ -24,7 +24,7 @@ class PositiveNumber(Scalar):
 
     @staticmethod
     def parse_literal(ast):
-        if isinstance(ast, (FloatValueNode, IntValueNode)):
+        if isinstance(ast, (FloatValue, IntValue)):
             num = float(ast.value)
             if (num >= 0):
                 return num

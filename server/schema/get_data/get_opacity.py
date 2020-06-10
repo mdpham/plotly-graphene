@@ -7,10 +7,10 @@ import csv
 import itertools
 import loompy
 
-from gradient import polylinear_gradient
+from get_data.gradient import polylinear_gradient
 
-import helper
-import minio_functions
+import get_data.helper
+import get_data.minio_functions
 
 loom_file = {
     "bucket": "frontend_normalized",
