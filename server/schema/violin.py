@@ -77,4 +77,4 @@ class Violin(ObjectType):
     data = List(NonNull(Field(ViolinData)))
     @staticmethod
     def resolve_data(parent, info):
-        return get_violin_data(parent.group, parent.feature, parent.runID, parent.projectID, info.context.get('minio_client'))
+        return get_violin_data(parent.group, parent.feature, parent.runID, info.context.get('minio_client'))

@@ -84,16 +84,10 @@ def new_violin_group(label, y_coord):
     colour_counter += 1
     return violin_group
 
-def categorize_barcodes(group, expression_values, runID, projectID, minio_client):
+def categorize_barcodes(group, expression_values, runID, paths, minio_client):
     """ for every group, make a new plotly object and put the barcodes into it """
-    metadata = {
-        "bucket": "project-{pID}".format(pID=projectID),
-        "object": "metadata.tsv"
-    }
-    groups = {
-        "bucket": "frontend_groups",
-        "object": "groups.tsv"
-    }
+    metadata = paths["metadata"]
+    groups = paths["groups"]
 
     metadata_exists = minio_functions.object_exists(metadata["bucket"], metadata["object"], minio_client)
 
@@ -128,10 +122,15 @@ def calculate_bandwidths(plotly_obj):
             std = np.std(mod_values)
             violin_group['bandwidth'] = 0.9 * min(std, iqr/1.34) * (len(mod_values)**(-1/5.0))
 
-def get_violin_data(group, feature, runID, projectID, minio_client):
-    """ given a grouping for the cells and a feature of interest, returns the plotly violin object """    
+def get_violin_data(group, feature, runID, minio_client):
+    """ given a grouping for the cells and a feature of interest, returns the plotly violin object """
+    paths = {}
+    with open('paths.json') as paths_file:
+        paths = json.load(paths_file)
+    helper.set_runID(paths, runID)
+
     expression_values = get_expression(feature, runID)
-    plotly_obj = categorize_barcodes(group, expression_values, runID, projectID, minio_client)
+    plotly_obj = categorize_barcodes(group, expression_values, runID, paths, minio_client)
     calculate_bandwidths(plotly_obj)
     helper.sort_traces(plotly_obj)
     return plotly_obj

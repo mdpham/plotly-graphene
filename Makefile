@@ -3,7 +3,7 @@ SHELL := /bin/bash
 
 minio:
 	# For windows users,
-	# minio.exe server D:\path\to\plotly_graphene\minio
+	minio.exe server D:\CReSCENT\plotly-graphene\results\SEURAT
 
 frontend:
 	cd client

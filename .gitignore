@@ -8,7 +8,9 @@ __pycache__
 server/bin/*
 server/include/*
 server/lib/*
+server/minio_data/*
+server/run_minio.bat
+server/mino.exe
 
 .vscode/*
-results/*
 server/schema/python_modules/*

@@ -36,4 +36,4 @@ class Opacity(ObjectType):
     data = List(NonNull(Field(OpacityData)))
     @staticmethod
     def resolve_data(parent, info):
-        return get_opacity_data(parent.group, parent.feature, parent.runID, parent.projectID, info.context.get('minio_client'))
+        return get_opacity_data(parent.group, parent.feature, parent.runID, info.context.get('minio_client'))

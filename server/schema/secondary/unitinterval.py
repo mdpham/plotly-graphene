@@ -1,7 +1,7 @@
 from graphene import Scalar
 from graphql.language.ast import (
-    FloatValueNode,
-    IntValueNode,
+    FloatValue,
+    IntValue,
 )
 
 MIN_UNIT_INTVL = 0.0
@@ -27,7 +27,7 @@ class UnitInterval(Scalar):
 
     @staticmethod
     def parse_literal(ast):
-        if isinstance(ast, (FloatValueNode, IntValueNode)):
+        if isinstance(ast, (FloatValue, IntValue)):
             num = float(ast.value)
             if (MIN_UNIT_INTVL <= num <= MAX_UNIT_INTVL):
                 return num

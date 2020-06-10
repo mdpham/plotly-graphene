@@ -1,7 +1,13 @@
 from graphene import Field, List, ObjectType
-
-from hex_colour_code import HexColour
-from positivenum import PositiveNumber
+"""
+Run these if you need to run this file directly
+Refer to https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html#case-2-syspath-could-change
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+"""
+from secondary.hex_colour_code import HexColour
+from secondary.positivenum import PositiveNumber
 
 class Line(ObjectType):
     color = Field(List(HexColour))

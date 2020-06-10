@@ -63,18 +63,12 @@ def add_barcodes(plotly_obj, barcode_values, group, opacities):
 
     plotly_obj["barcodes"] = template_obj
 
-def sort_barcodes(opacities, group, runID, projectID, minio_client):
+def sort_barcodes(opacities, group, runID, paths, minio_client):
     """ given the opacities for the barcodes, sorts them into the specified groups and returns a plotly object """
     plotly_obj = {}
-
-    metadata = {
-        "bucket": "project-{pID}".format(pID=projectID),    
-        "object": "metadata.tsv"
-    }
-    groups = {
-        "bucket": "frontend_groups",
-        "object": "groups.tsv"
-    }
+    
+    metadata = paths["metadata"]
+    groups = paths["groups"]
 
     metadata_exists = minio_functions.object_exists(metadata["bucket"], metadata["object"], minio_client)
 
@@ -162,10 +156,15 @@ def get_opacities(feature, runID):
         else:
             helper.return_error("Feature Not Found")
     
-def get_opacity_data(group, feature, runID, projectID, minio_client):
+def get_opacity_data(group, feature, runID, minio_client):
     """ given a group and feature, returns the expression opacities of the feature of interest for each barcode """
+    paths = {}
+    with open('paths.json') as paths_file:
+        paths = json.load(paths_file)
+    helper.set_runID(paths, runID)
+
     opacities = get_opacities(feature, runID)
-    plotly_obj = sort_barcodes(opacities, group, runID, projectID, minio_client)
+    plotly_obj = sort_barcodes(opacities, group, runID, paths, minio_client)
     try:
         helper.sort_traces(plotly_obj)
     except:

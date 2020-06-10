@@ -1,6 +1,7 @@
 #!/bin/python
 
 import os
+import gzip
 
 from minio import Minio
 from minio import ResponseError
@@ -21,21 +22,31 @@ def object_exists(bucket, objct, minio_client):
     return False
 
 def format_line_as_string_list(line):
-    return (
-        str(line) # Convert to string
-        [2:-1] # Remove b'' from b'<Stuff we need>'
-        .rstrip("\\n") # '\' is interpreted literally for some reason
-        .split("\\t")
-    )
+    line = str(line) # Convert to string
+    line = line[2:-1] # Remove b'' from b'<Stuff we need>'
+    # Note: '\' is interpreted literally for some reason
+    if (line.endswith("\\n")):
+        line = line[:-3] # Remove \n from the end
+    return line.split("\\t") # List with '\t' as seperator
 
-def get_first_line(bucket, objct, minio_client):
-    return format_line_as_string_list(
-        minio_client.get_object(bucket, objct).readline()
-    )
+def get_first_line(bucket, objct, minio_client, gzipped=False):
+    if (gzipped):
+        with gzip.open(minio_client.get_object(bucket, objct), 'rb') as data:
+            first_line = data.readline()
+    else:
+        first_line = minio_client.get_object(bucket, objct).readline()
+    return format_line_as_string_list(first_line)
 
-def get_obj_as_2dlist(bucket, objct, minio_client, include_header=True):
+def get_obj_as_2dlist(bucket, objct, minio_client, include_header=True, gzipped=False):
     obj = minio_client.get_object(bucket, objct)
-    if (not include_header):
-        obj.readline()
-    return [format_line_as_string_list(line) for line in obj]
+    if(gzipped):
+        with gzip.open(obj, 'rb') as data:
+            if (not include_header):
+                data.readline()
+            _2dlist = [format_line_as_string_list(line) for line in data]
+    else:
+        if (not include_header):
+            obj.readline()
+        _2dlist = [format_line_as_string_list(line) for line in obj]
+    return _2dlist
 

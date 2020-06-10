@@ -99,3 +99,10 @@ def sort_traces(trace_objects):
 	else:
 		trace_objects.sort(key=lambda i: i['name'])
 	return 
+
+def set_runID(paths, runID):
+	for path in paths.values():
+		if(("bucket" in path) and (path["bucket"].startswith("run-"))):
+			path["bucket"] += runID
+	paths["normalised_counts"] = paths["normalised_counts"]["prefix"] + runID + paths["normalised_counts"]["suffix"]
+	

@@ -4,10 +4,10 @@ import sys
 import os
 import json
 import csv
-from gradient import polylinear_gradient
 
-import minio_functions
-import helper
+from get_data.gradient import polylinear_gradient
+import get_data.helper
+import get_data.minio_functions
 
 colour_dict = {}
 
@@ -84,7 +84,7 @@ def add_barcodes(plotly_obj, column_name, barcode_values, barcode_coords, num_ce
     
     plotly_obj["numeric_data"] = template_obj
     return
-
+    
 def label_with_groups(plotly_obj, barcode_coords, num_cells, group, groups_tsv):
     # the chosen group is in the default groups.tsv file, metadata is irrelevant
     label_idx = groups_tsv[0].index(str(group)) # column index of group
@@ -148,19 +148,13 @@ def label_with_metadata(plotly_obj, barcode_coords, num_cells, group, groups_tsv
     else:
         helper.return_error(group + " does not have a valid data type (must be 'group' or 'numeric')")
 
-def label_barcodes(barcode_coords, group, runID, projectID, minio_client):
+def label_barcodes(barcode_coords, group, runID, paths, minio_client):
     """ given the coordinates for the barcodes, sorts them into the specified groups and returns a plotly object """
     plotly_obj = {}    
     num_cells = helper.get_cellcount(runID)
 
-    metadata = {
-        "bucket": "project-{pID}".format(pID=projectID),
-        "object": "metadata.tsv"
-    }
-    groups = {
-        "bucket": "frontend_groups",
-        "object": "groups.tsv"
-    }
+    metadata = paths["metadata"]
+    groups = paths["groups"]
 
     metadata_exists = minio_functions.object_exists(metadata["bucket"], "metadata.tsv", minio_client)
 
@@ -179,12 +173,14 @@ def label_barcodes(barcode_coords, group, runID, projectID, minio_client):
 
     return plotly_obj.values()
 
-def get_coordinates(vis, runID, minio_client):
+def get_coordinates(vis, runID, frontend_coord_path, minio_client):
     """ given a visualization type and runID, gets the coordinates for each barcode and returns in dict """
     barcode_coords = {}
     
     coordinate_file = minio_functions.get_obj_as_2dlist(
-        "frontend_coordinates", "{vis}Coordinates.tsv".format(vis=vis), minio_client, include_header=False)
+        "run-{rID}".format(rID=runID), "{path}{vis}Coordinates.tsv".format(path=frontend_coord_path, vis=vis),
+        minio_client, include_header=False
+    )
     for row in coordinate_file:
         barcode = row[0]
         if barcode in barcode_coords:
@@ -194,10 +190,15 @@ def get_coordinates(vis, runID, minio_client):
 
     return barcode_coords
 
-def get_scatter_data(vis, group, runID, projectID, minio_client):
-    """ given a vistype grouping, runID and projectID, returns the plotly object """
-    barcode_coords = get_coordinates(vis, runID, minio_client)
-    plotly_obj = label_barcodes(barcode_coords, group, runID, projectID, minio_client)
+def get_scatter_data(vis, group, runID, minio_client):
+    """ given a vistype grouping, and runID: returns the plotly object """
+    paths = {}
+    with open('paths.json') as paths_file:
+        paths = json.load(paths_file)
+    helper.set_runID(paths, runID)
+
+    barcode_coords = get_coordinates(vis, runID, paths["frontend_coordinates"], minio_client)
+    plotly_obj = label_barcodes(barcode_coords, group, runID, paths, minio_client)
     try:
         helper.sort_traces(plotly_obj)
     except:

@@ -1,5 +1,5 @@
 from graphene.types import Scalar
-from graphql.language.ast import StringValueNode
+from graphql.language.ast import StringValue
 
 import json
 
@@ -25,7 +25,7 @@ class HexColour(Scalar):
     # parseLiteral: gets invoked to parse client input that was passed inline in the query.
     @staticmethod
     def parse_literal(node):
-        if (isinstance(node, StringValueNode)):
+        if (isinstance(node, StringValue)):
             colour = node.value
             if ((colour[0] == "#") and (len(colour) == 7)):
                 # Check if digits are valid hex digits

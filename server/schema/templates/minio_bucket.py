@@ -3,7 +3,7 @@ from graphene import Schema, Mutation, ObjectType, String, Field, ID, List, Int
 
 from minio import Minio
 from minio.error import ResponseError
-from .client import minio_client
+from client import minio_client
 
 class MinioObject(ObjectType):
   # TODO: figure out bidirectional relation between types
@@ -28,7 +28,6 @@ class MinioObject(ObjectType):
 
 class MinioBucket(ObjectType):
   bucket_name = String()
-
   # Has shape
   #   [{bucket_name, object_name, size, last_modified, etag}]
   objects = List(MinioObject)
