@@ -19,7 +19,7 @@ def test_scatter(client, schema):
             data(vis: $vis, group: $group, runID: $runID, projectID: $projectID)
         }
     }
-    """,    
+    """,
     # Setting Arguments
     variables={
         "vis": vis,
