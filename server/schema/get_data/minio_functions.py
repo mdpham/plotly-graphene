@@ -26,7 +26,7 @@ def format_line_as_string_list(line):
     line = line[2:-1] # Remove b'' from b'<Stuff we need>'
     # Note: '\' is interpreted literally for some reason
     if (line.endswith("\\n")):
-        line = line[:-3] # Remove \n from the end
+        line = line[:-2] # Remove \n from the end
     return line.split("\\t") # List with '\t' as seperator
 
 def get_first_line(bucket, objct, minio_client, gzipped=False):
@@ -50,3 +50,9 @@ def get_obj_as_2dlist(bucket, objct, minio_client, include_header=True, gzipped=
         _2dlist = [format_line_as_string_list(line) for line in obj]
     return _2dlist
 
+def count_lines(bucket, objct, minio_client):
+    obj = minio_client.get_object(bucket, objct)
+    count = 0
+    for line in obj:
+        count += 1
+    return count

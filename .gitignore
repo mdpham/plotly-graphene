@@ -15,7 +15,6 @@ server/share/*
 
 # Minio and Data
 server/minio_data/*
-server/run_minio.bat
 server/minio.exe
 
 # Used for reference and testing

@@ -1,6 +1,6 @@
 from graphene import Field, Float, ID, List, NonNull, ObjectType, String
 
-from get_data.get_scatter import get_scatter_data
+from get_data import get_scatter
 
 from secondary.marker import Marker
 from secondary.mode import Mode
@@ -29,7 +29,7 @@ class ScatterData(ObjectType):
     y = List(NonNull(Float))
     @staticmethod
     def resolve_y(parent, info):
-        return parent["y"]
+        return parent["y"]  
     
     marker = Marker()
     @staticmethod
@@ -38,7 +38,7 @@ class ScatterData(ObjectType):
 
 class Scatter(ObjectType):
     """docstring for Scatter"""
-    data = List(NonNull(Field(ScatterData)), vis=String(), group=String(), runID=ID())
+    data = List(NonNull(ScatterData), vis=String(), group=String(), runID=String())
     @staticmethod
     def resolve_data(parent, info, vis, group, runID):
-        return get_scatter_data(vis, group, runID, info.context.get('minio_client'))
+        return get_scatter.get_scatter_data(vis, group, runID, info.context.get('minio_client'))
