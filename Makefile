@@ -1,6 +1,10 @@
 SHELL := /bin/bash
 .ONESHELL:
 
+mongo:
+	# For windows users,
+        # mongod.exe --dbpath="c:\data\db"
+
 minio:
 	# For windows users,
 	# minio.exe server D:\path\to\plotly_graphene\minio
