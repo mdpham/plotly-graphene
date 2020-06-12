@@ -8,3 +8,7 @@ __pycache__
 server/bin/*
 server/include/*
 server/lib/*
+
+# minio and mongo files
+mongodb/*
+minio/*
