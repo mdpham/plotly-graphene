@@ -1,13 +1,13 @@
 version: "3"
 
 services: 
-  # mongo: 
-    # image: mongo:latest
-    # container_name: mongo
-    # ports:
-    #   - "${MONGO_HOST_PORT}:27017"
-    # volumes:
-    #   - ./mongodb:/data/db
+  mongo: 
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "${MONGO_HOST_PORT}:${MONGO_HOST_PORT}"
+    volumes:
+      - ./mongodb:/data/db
 
   minio: 
     image: minio/minio:latest
@@ -27,6 +27,7 @@ services:
 
   server: 
     image: plotly-graphene-server
+    build: ./server
     container_name: pg-server
     networks:
       - default
@@ -48,6 +49,7 @@ services:
 
   client: 
     image: plotly-graphene-client
+    build: ./client
     container_name: pg-client
     networks:
       - default
