@@ -91,4 +91,5 @@ def set_runID(paths, runID):
 		if(("bucket" in path) and (path["bucket"].startswith("run-"))):
 			path["bucket"] += runID
 	paths["normalised_counts"] = paths["normalised_counts"]["prefix"] + runID + paths["normalised_counts"]["suffix"]
+	return paths
 	

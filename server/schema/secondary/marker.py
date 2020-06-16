@@ -10,7 +10,7 @@ from secondary.hex_colour_code import HexColour
 from secondary.unitinterval import UnitInterval
 
 class Marker(ObjectType):
-    color = List(Field(HexColour))
+    color = List(HexColour)
     @staticmethod
     def resolve_color(parent, info):
         return parent["color"]
@@ -19,4 +19,3 @@ class Marker(ObjectType):
     @staticmethod
     def resolve_opacity(parent, info):
         return parent["opacity"]
-

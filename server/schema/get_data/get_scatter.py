@@ -163,8 +163,7 @@ def label_barcodes(barcode_coords, group, runID, paths, minio_client):
     groups_tsv = get_obj_as_2dlist(groups["bucket"], groups["object"], minio_client)
     num_cells = count_lines(groups["bucket"], groups["object"], minio_client) - 2
     metadata_exists = object_exists(metadata["bucket"], metadata["object"], minio_client)
-
-    print(groups_tsv[0])
+    
     if group in groups_tsv[0]:
         # groups tsv definition supercedes metadata
         label_with_groups(plotly_obj, barcode_coords, num_cells, group, groups_tsv)
@@ -197,15 +196,17 @@ def get_coordinates(vis, runID, path, minio_client):
 
 def get_scatter_data(vis, group, runID, minio_client):
     """ given a vistype grouping, and runID: returns the plotly object """
+    global colour_dict
     paths = {}
     with open('get_data/paths.json') as paths_file:
         paths = json.load(paths_file)
-    set_runID(paths, runID)
+    paths = set_runID(paths, runID)
 
     barcode_coords = get_coordinates(vis, runID, paths["frontend_coordinates"], minio_client)
     plotly_obj = label_barcodes(barcode_coords, group, runID, paths, minio_client)
+    colour_dict = {}
     try:
         sort_traces(plotly_obj)
     except:
         pass # this is fine, just means it's not sortable
-    return json.dumps(plotly_obj)
+    return plotly_obj
