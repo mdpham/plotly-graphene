@@ -2,8 +2,12 @@ SHELL := /bin/bash
 .ONESHELL:
 
 minio:
-	# For windows users,
+	# For windows plebs,
 	minio.exe server D:\CReSCENT\plotly-graphene\results\SEURAT
+
+mongo:
+	# For windows plebs
+	mongod.exe --dbpath="D:\CReSCENT\plotly-graphene\server\mongodb_data"
 
 frontend:
 	cd client

@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 """
 from get_data.gradient import polylinear_gradient
 
-from get_data.helper import COLOURS, return_error, set_runID, sort_traces
+from get_data.helper import COLOURS, return_error, set_IDs, sort_traces
 
 from get_data.minio_functions import count_lines, get_first_line, get_obj_as_2dlist, object_exists
 
@@ -200,7 +200,7 @@ def get_scatter_data(vis, group, runID, minio_client):
     paths = {}
     with open('get_data/paths.json') as paths_file:
         paths = json.load(paths_file)
-    paths = set_runID(paths, runID)
+    paths = set_IDs(paths, runID)
 
     barcode_coords = get_coordinates(vis, runID, paths["frontend_coordinates"], minio_client)
     plotly_obj = label_barcodes(barcode_coords, group, runID, paths, minio_client)

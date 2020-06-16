@@ -7,7 +7,15 @@ from query import Query
 
 #from python_modules.scatter import get_scatter
 
-def test_scatter(client, schema):
+def main():
+    # Generating an instance of a minio client
+    client = Minio("127.0.0.1:9000", access_key="crescent-access", secret_key="crescent-secret", secure=False)
+
+    # Creating a Schema to execute queries on
+    schema = Schema(query=Query)
+    test_scatter(client, schema) # Set displayOutput=True to print graphene result
+
+def test_scatter(client, schema, displayOutput=False):
     print("Testing Scatter")
 
     # Setting arguments for a mock call
@@ -76,12 +84,10 @@ def test_scatter(client, schema):
                 print(ogr[key])
                 print("Lengths " + ("match" if (len(gr[key]) == len(ogr[key])) else "do not match"))
             
-    print("Scatter seems to work" if similar else "Uh Oh! Check Scatter")
+    print("Graphene output matches data from get_scatter" if similar else "Uh Oh! Check Scatter")
+
+    if displayOutput:
+        print(graphene_result)
 
 if __name__ == "__main__":
-    # Generating an instance of a minio client
-    client = Minio("127.0.0.1:9000", access_key="crescent-access", secret_key="crescent-secret", secure=False)
-
-    # Creating a Schema to execute queries on
-    schema = Schema(query=Query)
-    test_scatter(client, schema)
+    main()

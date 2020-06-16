@@ -22,7 +22,14 @@ For those without Docker, you'll need to add `virtualenv` to your server directo
 And then run separate make commands for each
 `make backend`
 `make frontend`
-The Minio command can be uncommented, pointed to the correct paths for `minio.exe` and the minio directory in this repo, and then run
-`make minio`
 
-Note that you will have to modify your `server/minio_client/client` file with the appropriate connection details
+Now we must start up a local minio server and mongodb server.
+For Windows Users:
+You can modify the `server/run_minio.bat` with the correct paths for the exe file and the data folder. Then double-clicking this will start a minio server.
+You can repeat the same process for `server/run_mongodb.bat` and use it similarly.
+
+Alternatively, you can do the following to do things in a more linux fashion
+You will have to modify your `server/minio_client/client` file with the appropriate connection details
+The Minio command can be uncommented in the Makefile, pointed to the correct paths for `minio.exe` and the minio directory in this repo, and then run
+`make minio`
+The process for mongodb is also similar

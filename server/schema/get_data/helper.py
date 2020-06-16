@@ -4,6 +4,8 @@ import sys
 import os
 import json
 from operator import itemgetter
+from pymongo import MongoClient
+from bson import ObjectId
 
 # plotly defaults
 COLOURS = [
@@ -86,10 +88,25 @@ def sort_traces(trace_objects):
 		trace_objects.sort(key=lambda i: i['name'])
 	return 
 
-def set_runID(paths, runID):
+def set_IDs(paths, runID):
+	client = MongoClient()
+	db = client['crescent']
+	runs = db['runs']
+
+	# Currently set to getting the first dataset associated with run. Basically assumes there is only 1 dataset
+	datasetID = str(
+		runs.find_one({'runID': ObjectId(runID)}) # Find run's metadata from runID
+		['datasetIDs'] # Get datasetIDs
+		[0] # Get the first one
+	) # Get a string from the returned ObjectID
+
 	for path in paths.values():
-		if(("bucket" in path) and (path["bucket"].startswith("run-"))):
-			path["bucket"] += runID
+		if ("bucket" in path):
+			if(path["bucket"].startswith("run-")):
+				path["bucket"] += runID
+			elif(path["bucket"].startswith("dataset-")):
+				path["bucket"] += datasetID
 	paths["normalised_counts"] = paths["normalised_counts"]["prefix"] + runID + paths["normalised_counts"]["suffix"]
+
 	return paths
 	
