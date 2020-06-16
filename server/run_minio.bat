@@ -1,1 +1,0 @@
-minio.exe server minio_data/upload

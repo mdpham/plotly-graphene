@@ -17,6 +17,7 @@ server/share/*
 minio/*
 server/minio_data/*
 server/minio.exe
+server/5eda76def93f82004f4114c6/*
 
 # MongoDB
 mongodb/*

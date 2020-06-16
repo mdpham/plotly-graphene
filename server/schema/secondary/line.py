@@ -6,8 +6,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 """
-from secondary.hex_colour_code import HexColour
-from secondary.positivenum import PositiveNumber
+from schema.secondary.hex_colour_code import HexColour
+from schema.secondary.positivenum import PositiveNumber
 
 class Line(ObjectType):
     color = Field(List(HexColour))

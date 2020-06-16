@@ -1,7 +1,7 @@
 from graphene import Field, Float, ID, List, NonNull, ObjectType, String
 
-from secondary.marker import Marker
-from secondary.mode import Mode
+from schema.secondary.marker import Marker
+from schema.secondary.mode import Mode
 
 class ScatterData(ObjectType):
     name = String()

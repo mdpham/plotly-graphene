@@ -8,15 +8,19 @@ import itertools
 import loompy
 import numpy as np
 
-import get_data.helper
-import get_data.minio_functions
+"""
+Run these if you need to run this file directly
+Refer to https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html#case-2-syspath-could-change
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+"""
+
+from schema.get_data.helper import COLOURS, return_error, set_IDs, sort_traces
+
+from schema.get_data.minio_functions import count_lines, get_first_line, get_obj_as_2dlist, object_exists
 
 colour_counter = 0
-
-loom_file = {
-    "bucket": "frontend_normalized",
-    "object": "normalized_counts.loom"
-}
 
 def add_barcode(plotly_obj, label, barcode, expression_values):
     """ add the barcode+expression to an exisiting group or make a new one in the plotly object """
@@ -45,17 +49,16 @@ def label_with_groups(plotly_obj, expression_values, group, labels_tsv):
             add_barcode(plotly_obj, label, barcode, expression_values)
     elif group_type == 'numeric':
         # can't do this for violins
-        helper.return_error(group + " is numeric data, not viewable in violin plots")
+        return_error(group + " is numeric data, not viewable in violin plots")
     else:
-        helper.return_error(group + " does not have a valid data type (must be 'group')")
+        return_error(group + " does not have a valid data type (must be 'group')")
 
     return plotly_obj
 
-def get_expression(feature, runID):
+def get_expression(feature, runID, normalised_counts):
     """ parses the normalized count matrix to get an expression value for each barcode """
-    path = '../minio/{bucket}/{object}'.format(bucket=loom_file['bucket'], object=loom_file['object'])
 
-    with loompy.connect(path) as ds:
+    with loompy.connect(normalised_counts) as ds:
         barcodes = ds.ca.CellID
         features = ds.ra.Gene
         feature_idx = next((i for i in range(len(features)) if features[i] == feature), -1)
@@ -63,7 +66,7 @@ def get_expression(feature, runID):
             feature_exp = [float(i) for i in ds[feature_idx, :]]
             return dict(zip(barcodes, feature_exp))
         else:
-            helper.return_error("Feature Not Found")
+            return_error("Feature Not Found")
 
 def new_violin_group(label, y_coord):
     """ creates a new violin group for the plot """
@@ -73,7 +76,7 @@ def new_violin_group(label, y_coord):
         "type": "violin",
         "spanmode": "hard",
         "fillcolor": "",
-        "line": {"color": helper.COLOURS[colour_counter%len(helper.COLOURS)] },
+        "line": {"color": COLOURS[colour_counter%len(COLOURS)] },
         "points": "jitter",
         "jitter": 0.85,
         "width": 0.75,
@@ -89,22 +92,22 @@ def categorize_barcodes(group, expression_values, runID, paths, minio_client):
     metadata = paths["metadata"]
     groups = paths["groups"]
 
-    metadata_exists = minio_functions.object_exists(metadata["bucket"], metadata["object"], minio_client)
+    metadata_exists = object_exists(metadata["bucket"], metadata["object"], minio_client)
 
     plotly_obj = {}
-    if (group in minio_functions.get_first_line(groups["bucket"], groups["object"], minio_client)):
+    if (group in get_first_line(groups["bucket"], groups["object"], minio_client)):
         # groups tsv definition supercedes metadata
         label_with_groups(plotly_obj, expression_values, group, 
-            minio_functions.get_obj_as_2dlist(groups["bucket"], groups["object"], minio_client))
+            get_obj_as_2dlist(groups["bucket"], groups["object"], minio_client))
     elif (metadata_exists and 
-         (group in minio_functions.get_first_line(metadata["bucket"], metadata["object"], minio_client))):
+         (group in get_first_line(metadata["bucket"], metadata["object"], minio_client))):
         # it's defined in the metadata
         label_with_groups(plotly_obj, expression_values, group, 
-            minio_functions.get_obj_as_2dlist(metadata["bucket"], metadata["object"], minio_client))
+            get_obj_as_2dlist(metadata["bucket"], metadata["object"], minio_client))
     else:
-        helper.return_error(group + " is not an available group in groups.tsv or metadata.tsv")
+        return_error(group + " is not an available group in groups.tsv or metadata.tsv")
 
-    return plotly_obj.values()
+    return list(plotly_obj.values())
 
 
 def calculate_bandwidths(plotly_obj):
@@ -122,15 +125,20 @@ def calculate_bandwidths(plotly_obj):
             std = np.std(mod_values)
             violin_group['bandwidth'] = 0.9 * min(std, iqr/1.34) * (len(mod_values)**(-1/5.0))
 
-def get_violin_data(group, feature, runID, minio_client):
+def get_violin_data(feature, group, runID, minio_client):
     """ given a grouping for the cells and a feature of interest, returns the plotly violin object """
-    paths = {}
-    with open('paths.json') as paths_file:
-        paths = json.load(paths_file)
-    helper.set_runID(paths, runID)
+    global colour_counter
 
-    expression_values = get_expression(feature, runID)
+    paths = {}
+    with open('schema/get_data/paths.json') as paths_file:
+        paths = json.load(paths_file)
+    set_IDs(paths, runID)
+
+    expression_values = get_expression(feature, runID, paths["normalised_counts"])
     plotly_obj = categorize_barcodes(group, expression_values, runID, paths, minio_client)
     calculate_bandwidths(plotly_obj)
-    helper.sort_traces(plotly_obj)
+    sort_traces(plotly_obj)
+
+    colour_counter = 0
+
     return plotly_obj

@@ -1,9 +1,9 @@
 from graphene import Field, List, NonNull, ObjectType, String
 
-from get_data.get_opacity import get_opacity_data
+from schema.get_data.get_opacity import get_opacity_data
 
-from secondary.hex_colour_code import HexColour
-from secondary.unitinterval import UnitInterval
+from schema.secondary.hex_colour_code import HexColour
+from schema.secondary.unitinterval import UnitInterval
 
 class OpacityMarker(ObjectType):
     opacity = List(UnitInterval)

@@ -5,15 +5,17 @@ import os
 import json
 import csv
 """
+Run these if you need to run this file directly
+Refer to https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html#case-2-syspath-could-change
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 """
-from get_data.gradient import polylinear_gradient
+from schema.get_data.gradient import polylinear_gradient
 
-from get_data.helper import COLOURS, return_error, set_IDs, sort_traces
+from schema.get_data.helper import COLOURS, return_error, set_IDs, sort_traces
 
-from get_data.minio_functions import count_lines, get_first_line, get_obj_as_2dlist, object_exists
+from schema.get_data.minio_functions import count_lines, get_first_line, get_obj_as_2dlist, object_exists
 
 colour_dict = {}
 
@@ -198,7 +200,7 @@ def get_scatter_data(vis, group, runID, minio_client):
     """ given a vistype grouping, and runID: returns the plotly object """
     global colour_dict
     paths = {}
-    with open('get_data/paths.json') as paths_file:
+    with open('schema/get_data/paths.json') as paths_file:
         paths = json.load(paths_file)
     paths = set_IDs(paths, runID)
 

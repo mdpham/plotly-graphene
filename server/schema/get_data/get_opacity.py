@@ -7,10 +7,10 @@ import csv
 import itertools
 import loompy
 
-from get_data.gradient import polylinear_gradient
+from schema.get_data.gradient import polylinear_gradient
 
-import get_data.helper
-import get_data.minio_functions
+import schema.get_data.helper
+import schema.get_data.minio_functions
 
 loom_file = {
     "bucket": "frontend_normalized",
@@ -159,7 +159,7 @@ def get_opacities(feature, runID):
 def get_opacity_data(group, feature, runID, minio_client):
     """ given a group and feature, returns the expression opacities of the feature of interest for each barcode """
     paths = {}
-    with open('paths.json') as paths_file:
+    with open('schema/get_data/paths.json') as paths_file:
         paths = json.load(paths_file)
     helper.set_runID(paths, runID)
 

@@ -1,12 +1,10 @@
 from graphene import Boolean, Enum, Field, Float, List, NonNull, ObjectType, String
 
-from get_data.get_violin import get_violin_data
-
-from secondary.line import Line
-from secondary.meanline import Meanline
-from secondary.positivenum import PositiveNumber
-from secondary.spanmode import SpanMode
-from secondary.unitinterval import UnitInterval
+from schema.secondary.line import Line
+from schema.secondary.meanline import Meanline
+from schema.secondary.positivenum import PositiveNumber
+from schema.secondary.spanmode import SpanMode
+from schema.secondary.unitinterval import UnitInterval
 
 class ViolinData(ObjectType):
     name = String()
@@ -77,4 +75,4 @@ class Violin(ObjectType):
     data = List(NonNull(ViolinData))
     @staticmethod
     def resolve_data(parent, info):
-        return get_violin_data(parent.group, parent.feature, parent.runID, info.context.get('minio_client'))
+        return parent["data"]
