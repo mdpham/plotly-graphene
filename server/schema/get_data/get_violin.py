@@ -7,7 +7,7 @@ import csv
 import itertools
 import loompy
 import numpy as np
-
+from minio import Minio
 """
 Run these if you need to run this file directly
 Refer to https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html#case-2-syspath-could-change
@@ -125,7 +125,7 @@ def calculate_bandwidths(plotly_obj):
             std = np.std(mod_values)
             violin_group['bandwidth'] = 0.9 * min(std, iqr/1.34) * (len(mod_values)**(-1/5.0))
 
-def get_violin_data(feature, group, runID, minio_client):
+def get_violin_data(feature, group, runID):
     """ given a grouping for the cells and a feature of interest, returns the plotly violin object """
     global colour_counter
 
@@ -133,6 +133,11 @@ def get_violin_data(feature, group, runID, minio_client):
     with open('schema/get_data/paths.json') as paths_file:
         paths = json.load(paths_file)
     set_IDs(paths, runID)
+
+    minio_config = {}
+    with open('schema/get_data/minio_config.json') as minio_config_file:
+        minio_config = json.load(minio_config_file)
+    minio_client = Minio(minio_config["host"], access_key=minio_config["access_key"], secret_key=minio_config["secret_key"], secure=minio_config["secure"])
 
     expression_values = get_expression(feature, runID, paths["normalised_counts"])
     plotly_obj = categorize_barcodes(group, expression_values, runID, paths, minio_client)

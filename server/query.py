@@ -11,11 +11,11 @@ class Query(ObjectType):
     scatter = Field(Scatter, vis=String(), group=String(), runID=String())
     @staticmethod
     def resolve_scatter(parent, info, vis, group, runID):
-        return {"data": get_scatter_data(vis, group, runID, info.context.get('minio_client'))}
+        return {"data": get_scatter_data(vis, group, runID)}
     """
     violin = Field(Violin, feature=String(), group=String(), runID=String())
     @staticmethod
     def resolve_violin(parent, info, feature, group, runID):
-        return {"data": get_violin_data(feature, group, runID, info.context.get('minio_client'))}
+        return {"data": get_violin_data(feature, group, runID,)}
     """
   

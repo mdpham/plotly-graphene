@@ -4,6 +4,7 @@ import sys
 import os
 import json
 import csv
+from minio import Minio
 """
 Run these if you need to run this file directly
 Refer to https://chrisyeh96.github.io/2017/08/08/definitive-guide-python-imports.html#case-2-syspath-could-change
@@ -196,13 +197,19 @@ def get_coordinates(vis, runID, path, minio_client):
 
     return barcode_coords
 
-def get_scatter_data(vis, group, runID, minio_client):
+def get_scatter_data(vis, group, runID):
     """ given a vistype grouping, and runID: returns the plotly object """
     global colour_dict
+
     paths = {}
     with open('schema/get_data/paths.json') as paths_file:
         paths = json.load(paths_file)
     paths = set_IDs(paths, runID)
+
+    minio_config = {}
+    with open('schema/get_data/minio_config.json') as minio_config_file:
+        minio_config = json.load(minio_config_file)
+    minio_client = Minio(minio_config["host"], access_key=minio_config["access_key"], secret_key=minio_config["secret_key"], secure=minio_config["secure"])
 
     barcode_coords = get_coordinates(vis, runID, paths["frontend_coordinates"], minio_client)
     plotly_obj = label_barcodes(barcode_coords, group, runID, paths, minio_client)

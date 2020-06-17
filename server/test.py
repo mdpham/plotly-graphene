@@ -1,5 +1,4 @@
 from graphene import Schema#, ObjectType, String, Field
-from minio import Minio
 import json
 
 from schema.get_data import get_scatter
@@ -10,14 +9,11 @@ from query import Query
 #from python_modules.scatter import get_scatter
 
 def main():
-    # Generating an instance of a minio client
-    client = Minio("127.0.0.1:9000", access_key="crescent-access", secret_key="crescent-secret", secure=False)
-
     # Creating a Schema to execute queries on
     schema = Schema(query=Query)
-    test_scatter(client, schema) # Set displayOutput=True to print graphene result
-
-def test_violin(client, schema, displayOutput=False):
+    test_scatter(schema) # Set displayOutput=True to print graphene result
+    
+def test_violin(schema, displayOutput=False):
     print("Testing Violin")
 
     # Setting arguments for a mock call
@@ -26,7 +22,7 @@ def test_violin(client, schema, displayOutput=False):
     runID = "5eda76def93f82004f4114c6"
 
     # We get the scatter data from the original python function
-    original_result = get_violin.get_violin_data(feature, group, runID, client)
+    original_result = get_violin.get_violin_data(feature, group, runID)
 
     result = schema.execute(
     # Query
@@ -51,9 +47,7 @@ def test_violin(client, schema, displayOutput=False):
         "feature": feature,
         "group": group,
         "runID": runID
-    },
-    # Passing the client through context
-    context={"minio_client": client})
+    })
 
     if(result.errors != None):
         print("ERROR(s)")
@@ -91,7 +85,7 @@ def test_violin(client, schema, displayOutput=False):
     if displayOutput:
         print(graphene_result)
 
-def test_scatter(client, schema, displayOutput=False):
+def test_scatter(schema, displayOutput=False):
     print("Testing Scatter")
 
     # Setting arguments for a mock call
@@ -100,7 +94,7 @@ def test_scatter(client, schema, displayOutput=False):
     runID = "5eda76def93f82004f4114c6"
 
     # We get the scatter data from the original python function
-    original_result = get_scatter.get_scatter_data(vis, group, runID, client)
+    original_result = get_scatter.get_scatter_data(vis, group, runID)
 
     result = schema.execute(
     # Query
@@ -125,9 +119,7 @@ def test_scatter(client, schema, displayOutput=False):
         "vis": vis,
         "group": group,
         "runID": runID
-    },
-    # Passing the client through context
-    context={"minio_client": client})
+    })
 
     if(result.errors != None):
         print("ERROR(s)")
