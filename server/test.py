@@ -12,7 +12,7 @@ def main():
     # Creating a Schema to execute queries on
     schema = Schema(query=Query)
     test_scatter(schema) # Set displayOutput=True to print graphene result
-    
+
 def test_violin(schema, displayOutput=False):
     print("Testing Violin")
 
