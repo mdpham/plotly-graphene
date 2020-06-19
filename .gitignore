@@ -27,4 +27,7 @@ server/mongod.exe
 # Used for reference and testing
 server/python_modules/*
 
+# Prabs testing suite
+server/test.py
+
 .vscode/*
