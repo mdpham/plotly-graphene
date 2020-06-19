@@ -6,16 +6,12 @@ import json
 import csv
 import itertools
 import loompy
+from minio import Minio
 
-from schema.get_data.gradient import polylinear_gradient
+from get_data.gradient import polylinear_gradient
+from get_data.helper import COLOURS, return_error, set_IDs, sort_traces
+from get_data.minio_functions import get_first_line, get_obj_as_2dlist, object_exists
 
-import schema.get_data.helper
-import schema.get_data.minio_functions
-
-loom_file = {
-    "bucket": "frontend_normalized",
-    "object": "normalized_counts.loom"
-}
 
 colour_dict = {}
 
@@ -28,7 +24,7 @@ def add_barcode(plotly_obj, barcode, label, opacities):
         plotly_obj[label]['marker']['color'].append(colour_dict[label])
     else:
         # label not seen yet
-        colour_dict[label] = helper.COLOURS[len(colour_dict.keys())%len(helper.COLOURS)]
+        colour_dict[label] = COLOURS[len(colour_dict.keys())%len(COLOURS)]
         plotly_obj[label] = {
             "name": label,
             "text": [barcode],
@@ -63,17 +59,17 @@ def add_barcodes(plotly_obj, barcode_values, group, opacities):
 
     plotly_obj["barcodes"] = template_obj
 
-def sort_barcodes(opacities, group, runID, paths, minio_client):
+def sort_barcodes(opacities, group, paths, minio_client):
     """ given the opacities for the barcodes, sorts them into the specified groups and returns a plotly object """
     plotly_obj = {}
     
     metadata = paths["metadata"]
     groups = paths["groups"]
 
-    metadata_exists = minio_functions.object_exists(metadata["bucket"], metadata["object"], minio_client)
+    metadata_exists = object_exists(metadata["bucket"], metadata["object"], minio_client)
 
-    if (group in minio_functions.get_first_line(groups["bucket"], groups["object"], minio_client)):
-        groups_tsv = minio_functions.get_obj_as_2dlist(groups["bucket"], groups["object"], minio_client)
+    if (group in get_first_line(groups["bucket"], groups["object"], minio_client)):
+        groups_tsv = get_obj_as_2dlist(groups["bucket"], groups["object"], minio_client)
 
         label_idx = groups_tsv[0].index(str(group))
         group_type = groups_tsv[1][label_idx]
@@ -95,10 +91,10 @@ def sort_barcodes(opacities, group, runID, paths, minio_client):
             barcode_values = [(x,int(y)) for x, y in barcode_values] if all_ints else [(x,round(y, 2)) for x, y in barcode_values]
             add_barcodes(plotly_obj, barcode_values, group, opacities)
         else:
-            helper.return_error(group + " does not have a valid data type (must be 'group' or 'numeric')")
-    elif (metadata_exists and (group in minio_functions.get_first_line(metadata["bucket"], metadata["object"], minio_client))):
+            return_error(group + " does not have a valid data type (must be 'group' or 'numeric')")
+    elif (metadata_exists and (group in get_first_line(metadata["bucket"], metadata["object"], minio_client))):
         # use the metadata
-        metadata_tsv = minio_functions.get_obj_as_2dlist(metadata["bucket"], metadata["object"], minio_client)
+        metadata_tsv = get_obj_as_2dlist(metadata["bucket"], metadata["object"], minio_client)
 
         label_idx = metadata_tsv[0].index(str(group))
         group_type = metadata_tsv[1][label_idx]
@@ -127,12 +123,12 @@ def sort_barcodes(opacities, group, runID, paths, minio_client):
             barcode_values = [(x,int(y)) for x, y in barcode_values] if all_ints else [(x,round(y, 2)) for x, y in barcode_values]
             add_barcodes(plotly_obj, barcode_values, group, opacities)
         else:
-            helper.return_error(group + " does not have a valid data type (must be 'group' or 'numeric')")
+            return_error(group + " does not have a valid data type (must be 'group' or 'numeric')")
         pass
     else:
-        helper.return_error(group + " is not an available group in groups.tsv or metadata.tsv")
+        return_error(group + " is not an available group in groups.tsv or metadata.tsv")
 
-    return plotly_obj.values()
+    return list(plotly_obj.values())
 
 def calculate_opacities(feature_row):
     """ given the normalized expression row, calculate and return the opacities """
@@ -142,11 +138,9 @@ def calculate_opacities(feature_row):
     opacities = [min_opac if val==0.0 else round((val*0.95/max_exp + min_opac), 2) for val in exp_values]    
     return opacities    
 
-def get_opacities(feature, runID):
+def get_opacities(feature, normalised_counts_path):
     """ parses the normalized count matrix to get an expression value for each barcode """
-    path = '../minio/{bucket}/{object}'.format(bucket=loom_file['bucket'], object=loom_file['object'])
-
-    with loompy.connect(path) as ds:
+    with loompy.connect(normalised_counts_path) as ds:
         barcodes = ds.ca.CellID
         features = ds.ra.Gene
         feature_idx = next((i for i in range(len(features)) if features[i] == feature), -1)
@@ -154,19 +148,35 @@ def get_opacities(feature, runID):
             opacities = calculate_opacities(ds[feature_idx, :])
             return dict(zip(barcodes, opacities))
         else:
-            helper.return_error("Feature Not Found")
+            return_error("Feature Not Found")
     
-def get_opacity_data(group, feature, runID, minio_client):
-    """ given a group and feature, returns the expression opacities of the feature of interest for each barcode """
-    paths = {}
-    with open('schema/get_data/paths.json') as paths_file:
-        paths = json.load(paths_file)
-    helper.set_runID(paths, runID)
+def get_opacity_data(feature, group, runID):
+    """ given a feature and group, returns the expression opacities of the feature of interest for each barcode """
+    
+    global colour_dict
 
-    opacities = get_opacities(feature, runID)
-    plotly_obj = sort_barcodes(opacities, group, runID, paths, minio_client)
+    paths = {}
+    with open('get_data/paths.json') as paths_file:
+        paths = json.load(paths_file)
+    set_IDs(paths, runID)
+
+    minio_config = {}
+    with open('get_data/minio_config.json') as minio_config_file:
+        minio_config = json.load(minio_config_file)
+    minio_client = Minio(
+        minio_config["host"],
+        access_key=minio_config["access_key"],
+        secret_key=minio_config["secret_key"],
+        secure=minio_config["secure"]
+    )
+    
+    opacities = get_opacities(feature, paths["normalised_counts"])
+    plotly_obj = sort_barcodes(opacities, group, paths, minio_client)
     try:
-        helper.sort_traces(plotly_obj)
+        sort_traces(plotly_obj)
     except:
         pass # not sortable, (o.k.)
+
+    colour_dict = {}
+
     return plotly_obj

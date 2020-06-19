@@ -25,6 +25,6 @@ server/mongodb_data
 server/mongod.exe
 
 # Used for reference and testing
-server/schema/python_modules/*
+server/python_modules/*
 
 .vscode/*

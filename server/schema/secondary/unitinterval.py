@@ -21,13 +21,14 @@ class UnitInterval(Scalar):
             return None
         if MIN_UNIT_INTVL <= num <= MAX_UNIT_INTVL:
             return num
+        return None
 
     serialize = coerce_unit_int
     parse_value = coerce_unit_int
 
     @staticmethod
-    def parse_literal(ast):
-        if isinstance(ast, (FloatValue, IntValue)):
-            num = float(ast.value)
+    def parse_literal(node):
+        if isinstance(node, (FloatValue, IntValue)):
+            num = float(node.value)
             if (MIN_UNIT_INTVL <= num <= MAX_UNIT_INTVL):
                 return num

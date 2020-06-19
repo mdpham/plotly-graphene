@@ -13,9 +13,9 @@ class ViolinData(ObjectType):
         return parent["name"]
 
     # type = violin if this returns true, else type = box
-    isTypeBox = Boolean()
+    is_type_box = Boolean()
     @staticmethod
-    def resolve_type(parent, info):
+    def resolve_is_type_box(parent, info):
         return parent["type"] == "box"
     
     spanmode = Field(SpanMode)
@@ -33,6 +33,11 @@ class ViolinData(ObjectType):
     @staticmethod
     def resolve_line(parent, info):
         return parent["line"]
+
+    points = String()
+    @staticmethod
+    def resolve_points(parent, info):
+        return parent["points"]
     
     jitter = UnitInterval()
     @staticmethod

@@ -18,13 +18,14 @@ class PositiveNumber(Scalar):
             return None
         if num >= 0:
             return num
+        return None
 
     serialize = coerce_positive_num
     parse_value = coerce_positive_num
 
     @staticmethod
-    def parse_literal(ast):
-        if isinstance(ast, (FloatValue, IntValue)):
-            num = float(ast.value)
+    def parse_literal(node):
+        if isinstance(node, (FloatValue, IntValue)):
+            num = float(node.value)
             if (num >= 0):
                 return num

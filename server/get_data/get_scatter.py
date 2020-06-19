@@ -12,11 +12,9 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 """
-from schema.get_data.gradient import polylinear_gradient
-
-from schema.get_data.helper import COLOURS, return_error, set_IDs, sort_traces
-
-from schema.get_data.minio_functions import count_lines, get_first_line, get_obj_as_2dlist, object_exists
+from get_data.gradient import polylinear_gradient
+from get_data.helper import COLOURS, return_error, set_IDs, sort_traces
+from get_data.minio_functions import count_lines, get_first_line, get_obj_as_2dlist, object_exists
 
 colour_dict = {}
 
@@ -157,7 +155,7 @@ def label_with_metadata(plotly_obj, barcode_coords, num_cells, group, groups_tsv
     else:
         return_error(group + " does not have a valid data type (must be 'group' or 'numeric')")
 
-def label_barcodes(barcode_coords, group, runID, paths, minio_client):
+def label_barcodes(barcode_coords, group, paths, minio_client):
     """ given the coordinates for the barcodes, sorts them into the specified groups and returns a plotly object """
     plotly_obj = {}
     metadata = paths["metadata"]
@@ -180,8 +178,8 @@ def label_barcodes(barcode_coords, group, runID, paths, minio_client):
 
     return list(plotly_obj.values())
 
-def get_coordinates(vis, runID, path, minio_client):
-    """ given a visualization type and runID, gets the coordinates for each barcode and returns in dict """
+def get_coordinates(vis, path, minio_client):
+    """ given a visualization type, path of the coordinates file, and minio client gets the coordinates for each barcode and returns in dict """
     barcode_coords = {}
     
     coordinate_file = get_obj_as_2dlist(
@@ -202,17 +200,22 @@ def get_scatter_data(vis, group, runID):
     global colour_dict
 
     paths = {}
-    with open('schema/get_data/paths.json') as paths_file:
+    with open('get_data/paths.json') as paths_file:
         paths = json.load(paths_file)
     paths = set_IDs(paths, runID)
 
     minio_config = {}
-    with open('schema/get_data/minio_config.json') as minio_config_file:
+    with open('get_data/minio_config.json') as minio_config_file:
         minio_config = json.load(minio_config_file)
-    minio_client = Minio(minio_config["host"], access_key=minio_config["access_key"], secret_key=minio_config["secret_key"], secure=minio_config["secure"])
+    minio_client = Minio(
+        minio_config["host"],
+        access_key=minio_config["access_key"],
+        secret_key=minio_config["secret_key"],
+        secure=minio_config["secure"]
+    )
 
-    barcode_coords = get_coordinates(vis, runID, paths["frontend_coordinates"], minio_client)
-    plotly_obj = label_barcodes(barcode_coords, group, runID, paths, minio_client)
+    barcode_coords = get_coordinates(vis, paths["frontend_coordinates"], minio_client)
+    plotly_obj = label_barcodes(barcode_coords, group, paths, minio_client)
     colour_dict = {}
     try:
         sort_traces(plotly_obj)

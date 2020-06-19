@@ -20,7 +20,7 @@ class Meanline(ObjectType):
     def resolve_color(parent, info):
         return parent['color']
     
-    width = Field(PositiveNumber())
+    width = Field(PositiveNumber)
     @staticmethod
     def resolve_width(parent, info):
         return parent['width']

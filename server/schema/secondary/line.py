@@ -10,12 +10,12 @@ from schema.secondary.hex_colour_code import HexColour
 from schema.secondary.positivenum import PositiveNumber
 
 class Line(ObjectType):
-    color = Field(List(HexColour))
+    color = Field(HexColour)
     @staticmethod
     def resolve_color(parent, info):
         return parent['color']
     
-    width = Field(PositiveNumber())
+    width = Field(PositiveNumber)
     @staticmethod
     def resolve_width(parent, info):
         return parent['width']

@@ -1,7 +1,5 @@
 from graphene import Field, List, NonNull, ObjectType, String
 
-from schema.get_data.get_opacity import get_opacity_data
-
 from schema.secondary.hex_colour_code import HexColour
 from schema.secondary.unitinterval import UnitInterval
 
@@ -36,4 +34,4 @@ class Opacity(ObjectType):
     data = List(NonNull(OpacityData))
     @staticmethod
     def resolve_data(parent, info):
-        return get_opacity_data(parent.group, parent.feature, parent.runID, info.context.get('minio_client'))
+        return parent["data"]

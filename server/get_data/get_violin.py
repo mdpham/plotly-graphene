@@ -16,14 +16,14 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 """
 
-from schema.get_data.helper import COLOURS, return_error, set_IDs, sort_traces
-
-from schema.get_data.minio_functions import count_lines, get_first_line, get_obj_as_2dlist, object_exists
+from get_data.helper import COLOURS, return_error, set_IDs, sort_traces
+from get_data.minio_functions import count_lines, get_first_line, get_obj_as_2dlist, object_exists
 
 colour_counter = 0
 
 def add_barcode(plotly_obj, label, barcode, expression_values):
     """ add the barcode+expression to an exisiting group or make a new one in the plotly object """
+
     if (label in plotly_obj):
         plotly_obj[label]['x'].append(label)
         plotly_obj[label]['y'].append(expression_values[barcode])
@@ -55,10 +55,10 @@ def label_with_groups(plotly_obj, expression_values, group, labels_tsv):
 
     return plotly_obj
 
-def get_expression(feature, runID, normalised_counts):
+def get_expression(feature, normalised_counts_path):
     """ parses the normalized count matrix to get an expression value for each barcode """
 
-    with loompy.connect(normalised_counts) as ds:
+    with loompy.connect(normalised_counts_path) as ds:
         barcodes = ds.ca.CellID
         features = ds.ra.Gene
         feature_idx = next((i for i in range(len(features)) if features[i] == feature), -1)
@@ -70,6 +70,7 @@ def get_expression(feature, runID, normalised_counts):
 
 def new_violin_group(label, y_coord):
     """ creates a new violin group for the plot """
+
     global colour_counter
     violin_group = {
         "name": label,
@@ -87,8 +88,9 @@ def new_violin_group(label, y_coord):
     colour_counter += 1
     return violin_group
 
-def categorize_barcodes(group, expression_values, runID, paths, minio_client):
+def categorize_barcodes(group, expression_values, paths, minio_client):
     """ for every group, make a new plotly object and put the barcodes into it """
+    
     metadata = paths["metadata"]
     groups = paths["groups"]
 
@@ -112,6 +114,7 @@ def categorize_barcodes(group, expression_values, runID, paths, minio_client):
 
 def calculate_bandwidths(plotly_obj):
     """ all expression values now recorded, calculate bandwidths and display violins with null bandwidths as boxplots """
+    
     for violin_group in plotly_obj:
         y_values = violin_group['y']
         #print(y_values.count(0.0)/float(len(y_values))*100)
@@ -127,20 +130,26 @@ def calculate_bandwidths(plotly_obj):
 
 def get_violin_data(feature, group, runID):
     """ given a grouping for the cells and a feature of interest, returns the plotly violin object """
+    
     global colour_counter
 
     paths = {}
-    with open('schema/get_data/paths.json') as paths_file:
+    with open('get_data/paths.json') as paths_file:
         paths = json.load(paths_file)
     set_IDs(paths, runID)
 
     minio_config = {}
-    with open('schema/get_data/minio_config.json') as minio_config_file:
+    with open('get_data/minio_config.json') as minio_config_file:
         minio_config = json.load(minio_config_file)
-    minio_client = Minio(minio_config["host"], access_key=minio_config["access_key"], secret_key=minio_config["secret_key"], secure=minio_config["secure"])
+    minio_client = Minio(
+        minio_config["host"],
+        access_key=minio_config["access_key"],
+        secret_key=minio_config["secret_key"],
+        secure=minio_config["secure"]
+    )
 
-    expression_values = get_expression(feature, runID, paths["normalised_counts"])
-    plotly_obj = categorize_barcodes(group, expression_values, runID, paths, minio_client)
+    expression_values = get_expression(feature, paths["normalised_counts"])
+    plotly_obj = categorize_barcodes(group, expression_values, paths, minio_client)
     calculate_bandwidths(plotly_obj)
     sort_traces(plotly_obj)
 

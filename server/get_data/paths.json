@@ -14,5 +14,9 @@
     "normalised_counts": {
         "prefix": "",
         "suffix": "/SEURAT/frontend_normalized/normalized_counts.loom"
+    },
+    "top_expressed": {
+        "bucket": "run-",
+        "object": "frontend_markers/TopTwoMarkersPerCluster.tsv"
     }
 }
