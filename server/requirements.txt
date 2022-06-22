@@ -24,7 +24,7 @@ loompy==3.0.6
 MarkupSafe==1.1.1
 minio==5.0.8
 numba==0.48.0
-numpy==1.18.2
+numpy==1.22.0
 numpy-groupies==0.9.10
 promise==2.3
 pydantic==1.4
